@@ -61,7 +61,7 @@ public class PersonDAO {
 			p.setLastName(rs.getString("lastName"));
 			return p;
 			// } else {
-			// throw new RuntimeException("Personne non trouvée pour l'id : " + id);
+			// throw new RuntimeException("Personne non trouvee pour l'id : " + id);
 			// // ou bien
 			// return null;
 			// }
