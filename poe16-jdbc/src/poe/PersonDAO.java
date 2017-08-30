@@ -10,14 +10,14 @@ import java.util.List;
 
 public class PersonDAO {
 
-	private static final String FIND_ALL = " select id, firstname, lastname from person ";
-	private static final String FIND_ONE = " select id, firstname, lastname from person where id = ? ";
-	private static final String INSERT   = " insert into person ( firstname, lastname ) values ( ? , ? ) ";
-	private static final String UPDATE   = " update      person set firstname = ? , lastname = ? where id = ? ";
+	private static final String FIND_ALL = " select id, firstname, lastname, birthdate from person ";
+	private static final String FIND_ONE = " select id, firstname, lastname, birthdate from person where id = ? ";
+	private static final String INSERT   = " insert into person ( firstname, lastname, birthdate ) values ( ? , ? , ? ) ";
+	private static final String UPDATE   = " update      person set firstname = ? , lastname = ? , birthdate = ? where id = ? ";
 	private static final String DELETE   = " delete from person where id = ? ";
 
 	private Connection getConnection() throws SQLException {
-		String url = "jdbc:mysql://localhost:3306/imie";
+		String url = "jdbc:mysql://localhost:3306/imie?zeroDateTimeBehavior=convertToNull";
 		String user = "root";
 		String password = "";
 		Connection connection = DriverManager.getConnection(url, user, password);
@@ -34,10 +34,7 @@ public class PersonDAO {
 			rs = ps.executeQuery();
 			List<Person> list = new ArrayList<>();
 			while (rs.next()) {
-				Person p = new Person();
-				p.setId(rs.getInt("id"));
-				p.setFirstName(rs.getString("firstName"));
-				p.setLastName(rs.getString("lastName"));
+				Person p = mapRow(rs);
 				list.add(p);
 			}
 			return list;
@@ -55,10 +52,7 @@ public class PersonDAO {
 			ps.setInt(1, id);
 			rs = ps.executeQuery();
 			// if (rs.next()) {
-			Person p = new Person();
-			p.setId(rs.getInt("id"));
-			p.setFirstName(rs.getString("firstName"));
-			p.setLastName(rs.getString("lastName"));
+			Person p = mapRow(rs);
 			return p;
 			// } else {
 			// throw new RuntimeException("Personne non trouvee pour l'id : " + id);
@@ -67,6 +61,17 @@ public class PersonDAO {
 			// }
 		} catch (SQLException ex) { throw new RuntimeException(ex);
 		} finally { close(co, ps, rs); }
+	}
+
+	private Person mapRow(ResultSet rs) throws SQLException {
+		Person p = new Person();
+		p.setId(rs.getInt("id"));
+		p.setFirstName(rs.getString("firstName"));
+		p.setLastName(rs.getString("lastName"));
+		if ( rs.getDate("birthDate") != null ) {
+			p.setBirthDate(rs.getDate("birthDate").toLocalDate());
+		}
+		return p;
 	}
 
 	/*
@@ -110,10 +115,12 @@ public class PersonDAO {
 		try {
 			co = getConnection();
 			ps = co.prepareStatement(update ? UPDATE : INSERT);
-			ps.setString(1, p.getFirstName());
-			ps.setString(2, p.getLastName());
+			int ii = 1;
+			ps.setString(ii++, p.getFirstName());
+			ps.setString(ii++, p.getLastName());
+			ps.setDate(ii++, java.sql.Date.valueOf(p.getBirthDate()));
 			if (update) {
-				ps.setInt(3, p.getId());
+				ps.setInt(ii++, p.getId());
 			}
 			ps.execute();
 		} catch (SQLException ex) { throw new RuntimeException(ex);

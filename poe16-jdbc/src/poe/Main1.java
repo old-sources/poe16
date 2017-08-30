@@ -17,12 +17,12 @@ public class Main1 {
 			// 1
 			//Class<?> driverClass = Class.forName("com.mysql.jdbc.Driver");
 			//DriverManager.registerDriver((Driver) driverClass.newInstance());
-			// 2 création d'une connexion
+			// 2 creation d'une connexion
 			String url = "jdbc:mysql://localhost:3306/imie";
 			String user = "root";
 			String password = "";
 			connection = DriverManager.getConnection(url, user, password);
-			// 3 préparation d'une instruction
+			// 3 preparation d'une instruction
 			String firstname = "chew";
 			String lastname = "baka";
 			String query = " insert into person ( firstname, lastname ) values ( ? , ? ) ";
@@ -32,16 +32,12 @@ public class Main1 {
 			// 4 execution de l'instruction
 			statement.execute();
 
-//			result = statement.executeQuery();
-//			// 5 obtention des résultats
-//			while (result.next()) {
-//				int nombre = result.getInt(1);
-//				System.out.println(nombre);
-//			}
+			// 5 obtention des resultats
+			// aucune avec un insert
 		} catch (Exception ex) {
 			ex.printStackTrace();
 		} finally {
-			// 6 fermeture des résultats
+			// 6 fermeture des resultats
 			if (result != null) { try { result.close(); } catch (SQLException ex) {} }
 			// 7 fermeture de l'instruction
 			if (statement != null) { try { statement.close(); } catch (SQLException ex) {} }

@@ -17,28 +17,28 @@ public class Main2 {
 			// 1
 			//Class<?> driverClass = Class.forName("com.mysql.jdbc.Driver");
 			//DriverManager.registerDriver((Driver) driverClass.newInstance());
-			// 2 création d'une connexion
+			// 2 creation d'une connexion
 			String url = "jdbc:mysql://localhost:3306/imie";
 			String user = "root";
 			String password = "";
 			connection = DriverManager.getConnection(url, user, password);
-			// 3 préparation d'une instruction
+			// 3 preparation d'une instruction
 			String query = " select id, firstname, lastname from person ";
 			statement = connection.prepareStatement(query);
 			// 4 execution de l'instruction
 			statement.execute();
 
 			result = statement.executeQuery();
-			// 5 obtention des résultats
+			// 5 obtention des resultats
 			while (result.next()) {
 				System.out.println("id : " + result.getInt("id"));
-				System.out.println("prénom : " + result.getString("firstName"));
+				System.out.println("prenom : " + result.getString("firstName"));
 				System.out.println(result.getString("lastName"));
 			}
 		} catch (Exception ex) {
 			ex.printStackTrace();
 		} finally {
-			// 6 fermeture des résultats
+			// 6 fermeture des resultats
 			if (result != null) { try { result.close(); } catch (SQLException ex) {} }
 			// 7 fermeture de l'instruction
 			if (statement != null) { try { statement.close(); } catch (SQLException ex) {} }
