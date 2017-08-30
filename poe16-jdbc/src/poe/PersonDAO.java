@@ -1,28 +1,19 @@
 package poe;
 
 import java.sql.Connection;
-import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
-public class PersonDAO {
+public class PersonDAO extends AbstractDAO {
 
 	private static final String FIND_ALL = " select id, firstname, lastname, birthdate from person ";
 	private static final String FIND_ONE = " select id, firstname, lastname, birthdate from person where id = ? ";
 	private static final String INSERT   = " insert into person ( firstname, lastname, birthdate ) values ( ? , ? , ? ) ";
 	private static final String UPDATE   = " update      person set firstname = ? , lastname = ? , birthdate = ? where id = ? ";
 	private static final String DELETE   = " delete from person where id = ? ";
-
-	private Connection getConnection() throws SQLException {
-		String url = "jdbc:mysql://localhost:3306/imie?zeroDateTimeBehavior=convertToNull";
-		String user = "root";
-		String password = "";
-		Connection connection = DriverManager.getConnection(url, user, password);
-		return connection;
-	}
 
 	public List<Person> findAll() {
 		Connection co = null;
@@ -74,19 +65,21 @@ public class PersonDAO {
 		return p;
 	}
 
-	/*
-
 	public void insert(Person p) {
 		Connection co = null;
 		PreparedStatement ps = null;
+		ResultSet keys = null;
 		try {
 			co = getConnection();
-			ps = co.prepareStatement(INSERT);
-			ps.setString(1, p.getFirstName());
-			ps.setString(2, p.getLastName());
+			ps = co.prepareStatement(INSERT, PreparedStatement.RETURN_GENERATED_KEYS);
+			setValues(ps, p, false);
 			ps.execute();
+			// obtention de l'id apres insertion (si besoin)
+			keys = ps.getGeneratedKeys();
+			keys.next();
+			p.setId(keys.getInt(1));
 		} catch (SQLException ex) { throw new RuntimeException(ex);
-		} finally { close(co, ps, null); }
+		} finally { close(co, ps, keys); }
 	}
 
 	public void update(Person p) {
@@ -95,36 +88,20 @@ public class PersonDAO {
 		try {
 			co = getConnection();
 			ps = co.prepareStatement(UPDATE);
-			ps.setString(1, p.getFirstName());
-			ps.setString(2, p.getLastName());
-			ps.setInt(3, p.getId());
+			setValues(ps, p, true);
 			ps.execute();
 		} catch (SQLException ex) { throw new RuntimeException(ex);
 		} finally { close(co, ps, null); }
 	}
 
-	*/
-
-	public void insert(Person p) { save(p, false); }
-
-	public void update(Person p) { save(p, true); }
-
-	public void save(Person p, boolean update) {
-		Connection co = null;
-		PreparedStatement ps = null;
-		try {
-			co = getConnection();
-			ps = co.prepareStatement(update ? UPDATE : INSERT);
-			int ii = 1;
-			ps.setString(ii++, p.getFirstName());
-			ps.setString(ii++, p.getLastName());
-			ps.setDate(ii++, java.sql.Date.valueOf(p.getBirthDate()));
-			if (update) {
-				ps.setInt(ii++, p.getId());
-			}
-			ps.execute();
-		} catch (SQLException ex) { throw new RuntimeException(ex);
-		} finally { close(co, ps, null); }
+	private void setValues(PreparedStatement ps, Person p, boolean update) throws SQLException {
+		int ii = 1;
+		ps.setString(ii++, p.getFirstName());
+		ps.setString(ii++, p.getLastName());
+		ps.setDate(ii++, java.sql.Date.valueOf(p.getBirthDate()));
+		if (update) {
+			ps.setInt(ii++, p.getId());
+		}
 	}
 
 	public void delete(int id) {
@@ -137,12 +114,6 @@ public class PersonDAO {
 			ps.execute();
 		} catch (SQLException ex) { throw new RuntimeException(ex);
 		} finally { close(co, ps, null); }
-	}
-
-	private void close(Connection co, PreparedStatement ps, ResultSet rs) {
-		if (rs != null) { try { rs.close(); } catch (SQLException ex) {} }
-		if (ps != null) { try { ps.close(); } catch (SQLException ex) {} }
-		if (co != null) { try { co.close(); } catch (SQLException ex) {} }
 	}
 
 }
